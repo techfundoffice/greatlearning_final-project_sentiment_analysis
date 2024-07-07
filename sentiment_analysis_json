@@ -1,0 +1,197 @@
+openapi: 3.0.1
+info:
+  title: Sentiment Analysis API
+  description: API for performing sentiment analysis on user-generated reviews for ExpressWay Logistics.
+  version: 1.0.0
+  contact:
+    name: ExpressWay Logistics
+    url: https://www.expresswaylogistics.com
+    email: support@expresswaylogistics.com
+
+servers:
+  - url: https://api.expresswaylogistics.com/v1
+    description: Production server
+
+components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  schemas:
+    Review:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the review
+        review:
+          type: string
+          description: Text of the user-generated review
+        sentiment:
+          type: string
+          description: Sentiment of the review
+          enum:
+            - positive
+            - negative
+
+    Reviews:
+      type: array
+      items:
+        $ref: '#/components/schemas/Review'
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Error code
+        message:
+          type: string
+          description: Error message
+
+paths:
+  /reviews:
+    get:
+      summary: Get all reviews with sentiment analysis
+      description: Retrieve a list of all user-generated reviews with their sentiment analysis.
+      security:
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: A list of reviews with sentiment analysis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reviews'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    post:
+      summary: Analyze sentiment of a new review
+      description: Submit a new user-generated review for sentiment analysis.
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                review:
+                  type: string
+                  description: Text of the user-generated review
+              required:
+                - review
+      responses:
+        '201':
+          description: Review created and sentiment analyzed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /reviews/{id}:
+    get:
+      summary: Get a specific review by ID
+      description: Retrieve a single user-generated review and its sentiment analysis by its unique identifier.
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the review
+      responses:
+        '200':
+          description: A single review with sentiment analysis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /stats:
+    get:
+      summary: Get sentiment analysis statistics
+      description: Retrieve statistics of sentiment analysis, including the count of positive and negative reviews.
+      security:
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: Sentiment analysis statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  positive_count:
+                    type: integer
+                    description: Count of positive reviews
+                  negative_count:
+                    type: integer
+                    description: Count of negative reviews
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+security:
+  - apiKeyAuth: []
